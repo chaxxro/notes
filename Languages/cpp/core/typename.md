@@ -59,6 +59,8 @@ struct WhileLoop<false, Body> {
 /*
 Body 必须提供一个静态数据成员，cond_value
 Body 必须提供两个子类型定义 res_type 和 next_type
+res_type 代表退出循环时的状态
+next_type 代表下面循环执行一次时的状态
 */
 
 template <typename Body>
@@ -66,13 +68,23 @@ struct While {
     typedef typename WhileLoop< Body::cond_value, Body>::type  type;
 };
 
-/*
-Body 必须提供一个静态数据成员，cond_value
-Body 必须提供两个子类型定义 res_type 和 next_type
+template <class T, T v>
+struct integral_constant {
+    static const T value = v;
+    typedef T value_type;
+    typedef integral_constant type;
+};
 
-res_type 和 type 都用 typename 修饰，表明都是类型
-*/
+template <int result, int n>
+struct SumLoop {
+    static const bool cond_value = n != 0;
+    static const int res_value = result;
+    typedef integral_constant< int, res_value>  res_type;
+    typedef SumLoop<result + n, n - 1>  next_type;
+};
 
-
-
+template <int n>
+struct Sum {
+    typedef SumLoop<0, n> type;
+};
 ```
