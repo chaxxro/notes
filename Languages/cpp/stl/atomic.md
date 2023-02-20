@@ -1,13 +1,17 @@
-# 原子操作
+# atomic
 
-原子操作是不可打断的最低粒度操作，是线程安全的、更高效的线程同步手段；使用原子变量就不需要使用互斥量来保护数据，用起来更简洁
+原子操作是不可打断的最低粒度操作，是线程安全的、更高效的线程同步手段
+
+使用原子变量就不需要使用互斥量来保护数据，用起来更简洁
 
 C++11 中所有的原子类都是不允许拷贝、不允许移动的
 
 ## `std::atomic_flag`
 
 提供了标志的管理，标志有三种状态：clear、set 和未初始化状态
+
 - clear：可以理解成 bool 类型的 false
+
 - set：可理解为 bool 类型的 true
 
 ### 实例化
@@ -34,7 +38,7 @@ bool test_and_set(std::memory_order order = std::memory_order_seq_cst) volatile 
 bool test_and_set(std::memory_order order = std::memory_order_seq_cst) noexcept;
 ```
 
-![](../../../Picture/Languages/cpp/atomic/01.webp)
+![](../../../Picture/Languages/cpp/stl/atomic/01.webp)
 
 |`memory_order` 取值|意义|
 |:-|:-:|
@@ -156,7 +160,7 @@ bool compare_exchange_weak(T& expect, T desr, memory_order m = memory_order_seq_
 bool compare_exchange_weak(T& expect, T desr, memory_order m = memory_order_seq_cst) noexcept;
 ```
 
-![](../../../Picture/Languages/cpp/atomic/02.webp)
+![](../../../Picture/Languages/cpp/stl/atomic/02.webp)
 
 与 `compare_exchange_strong` 版本不同， `compare_exchange_strong` 版允许返回伪 false，即使原子对象所封装的值与 expect 的物理内容相同，也仍然返回 false
 

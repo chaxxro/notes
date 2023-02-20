@@ -1,38 +1,4 @@
-# 智能指针
-
-## unique_ptr
-
-`unique_ptr` 是一个独享所有权的智能指针
-
-```cpp
-template<class T, class Deleter = std::default_delete<T>>
-class unique_ptr;
-
-template <class T, class Deleter>
-class unique_ptr<T[], Deleter>;
-```
-
-把拷贝构造和赋值函数 `delete`，任何试图调用它的行为将产生编译期错误，不允许 `unique_ptr` 进行拷贝、赋值，但是可以进行移动构造和移动赋值
-
-```cpp
-// 可指定删除器
-class Socket {
-public:
-	Socket() {}
-	~Socket() {}
-	void close() {}
-}
-
-auto deletor = [](Socket* pSocket) {
-	pSocket->close();
-	delete pSocket;
-}
-std::unique_ptr<Socket, void (*)(Socket*)> sp(new Socket(), deletor);
-// 使用 decltye
-std::unique_ptr<Socket, decltype(deletor)> sp(new Socket(), deletor);
-```
-
-## shared_ptr
+# shared_ptr
 
 ```cpp
 template<class T>
@@ -91,6 +57,7 @@ private:
 	int* count;
 };
 ```
+
 - 通过引用计数的方式来实现多个 `shared_ptr` 对象之间共享资源；`shared_ptr` 在其内部，给每个资源都维护了着一份计数，用来记录该份资源被几个对象共享；在对象被销毁时(也就是析构函数调用)，就说明自己不使用该资源了，对象的引用计数减一；如果引用计数是 0，就说明自己是最后一个使用该资源的对象，必须释放该资源;如果不是 0，就说明除了自己还有其他对象在使用该份资源，不能释放该资源，否则其他对象就成野指针了
 
 - 在多线程程序下，多个线程都去访问 `shared_ptr` 管理的空间，如果线程是并行的，那么引用计数会可能发生错误；C++11 定义一个互斥锁，对所有引用计数 `++` 或者 `–-` 进行加锁处理，这样就能保障引用计数在操作的过程中能够不被切出去，因此 `shared_ptr` 本身引用计数是线程安全的
@@ -98,7 +65,6 @@ private:
 - `shared_ptr` 内部有两个指针，这两个指针的拷贝在多线程下是不安全的
 
 - `shared_ptr<void>` 可以持有任何对象，并且安全释放
-
 
 ```cpp
 // 指定删除器来释放内存
@@ -140,7 +106,7 @@ int main()
 
 node1 和 node2 两个智能指针对象指向两个节点，引用计数变成 1，不需要手动 `delete`；node1 的_next 指向 node2 ，node2 的 _prev 指向 node1，它们的引用计数变成 2；node1 和 node2 析构，引用计数减到 1，但是 node1->_next 还指向 node2 节点，node2->_prev 还指向 node1；当 _next 析构时，node1 释放资源，当 _prev 析构时node2 释放资源。但是 _next 属于 node1 的成员，node1 释放了，_next 才会析构，而 node1 由 _prev 管理，_prev 属于 node2 成员，所以这就叫循环引用，谁也不会释放
 
-缺点：
+## 缺点
 
 - `shared_ptr` 的非侵入式引用计数，引用计数完全由 `shared_ptr` 控制，资源对象对与自己对应的引用计数一无所知，而引用计数与资源对象的生存期息息相关，这就意味着资源对象丧失了对生存期的控制权
 
@@ -170,61 +136,6 @@ else {
 ```
 
 - 通常先使用 `expired` 检测是否引用资源，然后调用 `lock` 获取 `shared_ptr`，但在多线程下存在安全隐患
-
-## make_shared、make_unique
-
-`std::make_shared` 模板函数，可以返回一个指定类型的 `std::shared_ptr`
-
-`std::make_unique` 模板函数，可以返回一个指定类型的 `std::unique_ptr`
-
-```cpp
-shared_ptr<string> p1 = make_shared<string>(10, '9');  
- 
-shared_ptr<string> p2 = make_shared<string>("hello");  
- 
-shared_ptr<string> p3 = make_shared<string>(); 
-```
-
-- `std::make_xxxxx` 比起直接使用 `new`，效率更高
-
-- 异常安全，发生异常时仍释放资源
-
-- 构造函数是保护或私有时，无法使用 `std::make_xxxx`
-
-- 对象的内存可能无法及时回收
-
-- `std::make_xxxxx` 无法指定删除器
-
-## enable_shared_from_this
-
-`enable_shared_from_this` 是一个以其派生类为模板类型实参的基类模板，继承它可将 `this` 转化成 `shared_ptr`
-
-```cpp
-class B : public std::enable_shared_from_this<B> {
-public:
-	std::shared_ptr<B> GetSelf() {
-		return shared_from_this();
-	}
-}
-
-shared_ptr<B> ptr = make_shared<B>();
-```
-
-使用 `shared_from_this()` 获取 `this`
-
-`shared_from_this()` 不能在构造函数中调用，因为对象还没转交给 `shared_ptr`
-
-- 由于引用计数数据和原始数据不是存放在同一处，因此不能对非 `shard_ptr` 对象调用使用 `shared_from_this()` 的函数，`shared_from_this()`
-
-```cpp
-int main() {
-	B b;
-	auto sp = b.GetSelf();  // 奔溃
-	return 0;
-}
-```
-
-- 避免出现循环引用问题
 
 ## 细节
 
@@ -279,16 +190,13 @@ destruct shared_ptr
 
 `shared_ptr` 内部保存了外部传入的原始指针类型
 
-![](../../Picture/Cpp/library/smart_pointer/1.jpeg)
+![](../../../Picture/Languages/cpp/stl/shared_ptr/1.jpeg)
 
-![](../../Picture/Cpp/library/smart_pointer/2.jpeg)
+![](../../../Picture/Languages/cpp/stl/shared_ptr/2.jpeg)
 
 `unique_ptr` 内部只有实例化时的类型，没有原始指针类型，`unique_ptr` 的表现跟裸指针一致
 
-![](../../Picture/Cpp/library/smart_pointer/3.png)
-
-![](../../Picture/Cpp/library/smart_pointer/4.png)
-
-![](../../Picture/Cpp/library/smart_pointer/5.png)
-
-![](../../Picture/Cpp/library/smart_pointer/6.png)
+![](../../../Picture/Languages/cpp/stl/shared_ptr//3.png)
+![](../../../Picture/Languages/cpp/stl/shared_ptr//4.png)
+![](../../../Picture/Languages/cpp/stl/shared_ptr//5.png)
+![](../../../Picture/Languages/cpp/stl/shared_ptr//6.png)

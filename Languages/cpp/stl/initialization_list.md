@@ -1,8 +1,6 @@
-## 初始化列表
+## initializer_list
 
-初始化列表可以初始化任意类型对象
-
-## initializer_list<T>
+`initializer_list<T>` 初始化列表可以初始化任意类型对象
 
 stl 中的容器通过类模板 `std::initializer_list<T>` 来完成初始化列表的任意长度
 

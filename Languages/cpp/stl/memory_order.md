@@ -76,8 +76,6 @@ synchronizes-with 关系强调的是变量被修改之后的传播关系，即�
 
 满足 synchronizes-with 关系的操作一定满足 happens-before 关系
 
-## 
-
 ## C++11 支持内存模型
 
 C++11 原子操作的很多函数都有个 `std::memory_order` 参数，这个参数就是这里所说的内存模型，其并不是类似 POD 的内存布局，而是一种数据同步模型，准确说法应该是储存一致性模型，其作用是对同一时间的读写操作进行排序
@@ -95,7 +93,7 @@ enum memory_order {
 
 与内存模型相关的枚举类型有以上六种，但是其实分为四类
 
-![](../../Picture/Cpp/syntax/memorymodel/01.png)
+![](../../../Picture/Languages/cpp/stl/memory_order/01.png)
 
 ## C++11 为 `std::atomic` 提供了 4 种 memory ordering
 
